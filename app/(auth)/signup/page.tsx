@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
@@ -12,9 +12,11 @@ export default function SignupPage() {
   const { loginWithGoogleCredential, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
-  if (user) {
-    router.push("/dashboard");
-  }
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) {

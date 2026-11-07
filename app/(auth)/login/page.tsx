@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
@@ -14,9 +14,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect
-  if (user) {
-    router.push("/dashboard");
-  }
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) {
@@ -51,9 +53,6 @@ export default function LoginPage() {
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
             Welcome to ResumeAI
           </h2>
-          <p className="mt-1.5 text-xs text-zinc-500">
-            Sign in with Google SSO to access your resume analyses and job tracker.
-          </p>
         </div>
 
         {error && (
