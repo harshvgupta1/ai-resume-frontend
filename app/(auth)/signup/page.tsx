@@ -33,28 +33,25 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-zinc-200 bg-white p-8 shadow-xl shadow-zinc-950/5 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-4 rounded-3xl border border-zinc-200 bg-white p-6 sm:p-7 shadow-xl shadow-zinc-950/5 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/25">
-            <Sparkles className="h-6 w-6" />
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/25">
+            <Sparkles className="h-5 w-5" />
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h2 className="mt-2.5 text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
             Create Your Account
           </h2>
-          <p className="mt-1.5 text-xs text-zinc-500">
-            Get started with AI-driven ATS resume scanning in seconds.
-          </p>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+          <div className="flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="space-y-5">
+        <div className="space-y-3">
           {/* Official Google SSO Button */}
           <div className="flex justify-center">
             <GoogleLogin
@@ -68,16 +65,16 @@ export default function SignupPage() {
             />
           </div>
 
-          <div className="relative flex items-center justify-center my-4">
+          <div className="relative flex items-center justify-center py-1">
             <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-            <span className="absolute bg-white px-4 text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:bg-zinc-900">
+            <span className="absolute bg-white px-3 text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:bg-zinc-900">
               OR
             </span>
           </div>
         </div>
 
         {/* Regular Signup Form */}
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-3.5">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-3">
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Full Name
