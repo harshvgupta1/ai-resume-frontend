@@ -66,12 +66,11 @@ export default function SignupPage() {
             />
           </div>
 
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex items-center justify-center my-4">
             <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-            <span className="bg-white px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:bg-zinc-900">
-              Or
+            <span className="absolute bg-white px-4 text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:bg-zinc-900">
+              OR
             </span>
-            <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
           </div>
         </div>
 
