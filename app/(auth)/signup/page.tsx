@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import { Sparkles, ArrowRight, ShieldCheck, Mail, Lock, User, UserCheck, AlertCircle } from "lucide-react";
+import { Sparkles, ArrowRight, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { loginWithGoogleCredential, demoLogin, user } = useAuth();
+  const { loginWithGoogleCredential, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   if (user) {
@@ -28,11 +28,6 @@ export default function SignupPage() {
     } else {
       setError("Failed to verify Google token with backend API.");
     }
-  };
-
-  const handleDemoSignup = () => {
-    demoLogin();
-    router.push("/dashboard");
   };
 
   return (
@@ -57,7 +52,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Official Google SSO Button */}
           <div className="flex justify-center">
             <GoogleLogin
@@ -74,23 +69,14 @@ export default function SignupPage() {
           <div className="relative flex items-center justify-center">
             <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
             <span className="bg-white px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:bg-zinc-900">
-              Or quick test
+              Or
             </span>
             <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
           </div>
-
-          <button
-            type="button"
-            onClick={handleDemoSignup}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 py-3 text-xs font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors"
-          >
-            <UserCheck className="h-4 w-4" />
-            <span>Instant Demo Sign-Up (Skip Setup)</span>
-          </button>
         </div>
 
         {/* Regular Signup Form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleDemoSignup(); }} className="space-y-3.5 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-3.5">
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Full Name

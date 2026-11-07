@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import { Sparkles, ArrowRight, ShieldCheck, Mail, Lock, UserCheck, AlertCircle } from "lucide-react";
+import { Sparkles, ArrowRight, Mail, Lock, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginWithGoogleCredential, demoLogin, user } = useAuth();
+  const { loginWithGoogleCredential, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -41,11 +41,6 @@ export default function LoginPage() {
     setError("Google authentication was closed or encountered an error.");
   };
 
-  const handleDemoLogin = () => {
-    demoLogin();
-    router.push("/dashboard");
-  };
-
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 rounded-3xl border border-zinc-200 bg-white p-8 shadow-xl shadow-zinc-950/5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -68,7 +63,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Official Google SSO Button */}
           <div className="flex justify-center">
             <GoogleLogin
@@ -82,27 +77,16 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex items-center justify-center my-4">
             <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-            <span className="bg-white px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:bg-zinc-900">
-              Or quick test
+            <span className="absolute bg-white px-4 text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:bg-zinc-900">
+              OR
             </span>
-            <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
           </div>
-
-          {/* Quick Demo Login Button */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 py-3 text-xs font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300 transition-colors"
-          >
-            <UserCheck className="h-4 w-4" />
-            <span>Instant Demo Sign-In (Skip Setup)</span>
-          </button>
         </div>
 
-        {/* Regular Email Form (Fallback UI) */}
-        <form onSubmit={(e) => { e.preventDefault(); handleDemoLogin(); }} className="space-y-3.5 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        {/* Regular Email Form */}
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-3.5">
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Email Address
