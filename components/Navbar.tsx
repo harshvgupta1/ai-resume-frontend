@@ -1,13 +1,34 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Sparkles, FileText, LayoutDashboard, Briefcase, LogOut, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowConfirmLogout(false);
+      }
+    };
+    if (showConfirmLogout) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showConfirmLogout]);
+
+  const handleConfirmLogout = () => {
+    setShowConfirmLogout(false);
+    logout();
+    router.push("/login");
+  };
 
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -72,7 +93,8 @@ export function Navbar() {
               </div>
 
               <button
-                onClick={logout}
+                type="button"
+                onClick={() => setShowConfirmLogout(true)}
                 title="Sign Out"
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
               >
@@ -97,6 +119,48 @@ export function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Sign Out Confirmation Modal */}
+      {showConfirmLogout && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setShowConfirmLogout(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 transition-all transform scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400 mb-4 shadow-sm">
+                <LogOut className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                Sign Out?
+              </h3>
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                Are you sure you want to sign out of ResumeAI? You will need to sign in again to access your resume analyses and job tracker.
+              </p>
+
+              <div className="mt-6 flex w-full items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmLogout(false)}
+                  className="flex-1 rounded-xl border border-zinc-200 bg-white py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  className="flex-1 rounded-xl bg-red-600 py-2.5 text-xs font-semibold text-white hover:bg-red-700 shadow-md shadow-red-600/20 transition-all cursor-pointer"
+                >
+                  Yes, Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
