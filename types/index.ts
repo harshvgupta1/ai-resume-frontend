@@ -13,8 +13,14 @@ export interface ResumeScan {
   candidateName?: string;
   targetRole: string;
   matchScore: number;
+  verdict?: "Strong Match" | "Moderate Match" | "Low Match" | string;
   createdAt: string;
   fileName: string;
+  matchingSkills?: string[];
+  missingSkills?: string[];
+  strengths?: string[];
+  improvements?: string[];
+  suggestedResumeEdits?: string[];
 }
 
 export interface JobApplication {

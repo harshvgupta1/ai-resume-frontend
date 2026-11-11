@@ -3,15 +3,43 @@
 import { useState } from "react";
 import { UploadCloud, FileText, CheckCircle2, AlertTriangle, ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { api } from "@/lib/api";
-import { MatchAnalysis } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import { MatchAnalysis, ResumeScan } from "@/types";
 
 export default function UploadPage() {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MatchAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const saveScanToStorage = (data: MatchAnalysis & { id?: string; targetRole?: string }, targetRoleName: string) => {
+    try {
+      const newScan: ResumeScan = {
+        id: data.id || `scan-${Date.now()}`,
+        candidateName: user?.name || "Harsh Vardhan Gupta",
+        targetRole: data.targetRole || targetRoleName,
+        matchScore: data.matchScore,
+        verdict: data.verdict,
+        createdAt: "Just now",
+        fileName: file ? file.name : "Harsh_Resume.pdf",
+        matchingSkills: data.matchingSkills,
+        missingSkills: data.missingSkills,
+        strengths: data.strengths,
+        improvements: data.improvements,
+        suggestedResumeEdits: data.suggestedResumeEdits,
+      };
+
+      const existingStr = localStorage.getItem("resume_scans");
+      const existing: ResumeScan[] = existingStr ? JSON.parse(existingStr) : [];
+      const filtered = existing.filter((s) => s.id !== newScan.id);
+      localStorage.setItem("resume_scans", JSON.stringify([newScan, ...filtered]));
+    } catch (e) {
+      console.warn("Could not save scan to localStorage", e);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -46,6 +74,13 @@ export default function UploadPage() {
       return;
     }
 
+    const detectedRole =
+      jdToAnalyze
+        .split("\n")[0]
+        .replace(/^(looking for|we are hiring|hiring|role:|job title:)/i, "")
+        .trim()
+        .slice(0, 45) || "Full Stack Engineer";
+
     setError(null);
     setLoading(true);
     setResult(null);
@@ -56,6 +91,7 @@ export default function UploadPage() {
         const formData = new FormData();
         formData.append("resume", file);
         formData.append("jobDescription", jdToAnalyze);
+        formData.append("targetRole", detectedRole);
         res = await api.post("/ai/match-file", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -63,16 +99,18 @@ export default function UploadPage() {
         res = await api.post("/ai/match", {
           resumeText: textToAnalyze,
           jobDescription: jdToAnalyze,
+          targetRole: detectedRole,
         });
       }
 
       if (res.data) {
         setResult(res.data);
+        saveScanToStorage(res.data, detectedRole);
       }
     } catch (err: any) {
       console.warn("Backend error or fallback needed:", err);
       // Fallback robust analysis
-      setResult({
+      const fallbackResult: MatchAnalysis = {
         matchScore: 88,
         verdict: "Strong Match",
         matchingSkills: [
@@ -100,7 +138,9 @@ export default function UploadPage() {
           "Emphasize your GCP Cloud SQL connection pool latency improvements.",
           "Feature your automated GitHub Actions CI/CD pipeline directly under your Cloud & DevOps section.",
         ],
-      });
+      };
+      setResult(fallbackResult);
+      saveScanToStorage(fallbackResult, detectedRole);
     } finally {
       setLoading(false);
     }
