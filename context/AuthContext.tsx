@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   loginWithGoogleCredential: (credential: string) => Promise<boolean>;
+  loginWithEmail: (email: string, name?: string) => Promise<boolean>;
   upgradeToPro: (plan?: "pro") => Promise<boolean>;
   refreshUser: () => Promise<void>;
   demoLogin: () => void;
@@ -80,6 +81,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithEmail = async (email: string, name?: string): Promise<boolean> => {
+    try {
+      const trimmedEmail = email.trim().toLowerCase();
+      const derivedName = name?.trim() || trimmedEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const res = await api.post("/auth/google", {
+        userInfo: {
+          email: trimmedEmail,
+          name: derivedName,
+        },
+      });
+      if (res.data?.token && res.data?.user) {
+        login(res.data.token, res.data.user);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Email auth verification failed:", err);
+      return false;
+    }
+  };
+
   const refreshUser = async () => {
     try {
       const res = await api.get("/auth/me");
@@ -128,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         loginWithGoogleCredential,
+        loginWithEmail,
         upgradeToPro,
         refreshUser,
         demoLogin,

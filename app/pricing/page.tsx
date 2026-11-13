@@ -2,16 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Sparkles, Zap, Shield, ArrowRight, HelpCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, Sparkles, Zap, Shield, ArrowRight, HelpCircle, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
 export default function PricingPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [showModal, setShowModal] = useState(false);
 
   const isPro = user?.plan === "pro";
+
+  const handleProUpgradeClick = () => {
+    if (!user) {
+      router.push("/login?redirect=/pricing");
+      return;
+    }
+    setShowModal(true);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
@@ -110,10 +120,10 @@ export default function PricingPage() {
 
           <div className="mt-8">
             <Link
-              href="/upload"
+              href={!user ? "/login?redirect=/upload" : "/upload"}
               className="flex w-full items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 py-3 text-xs font-bold text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 transition-colors"
             >
-              {user && !isPro ? "Current Plan" : "Get Started Free"}
+              {!user ? "Sign In to Get 3 Free Scans" : !isPro ? "Current Plan" : "Included in Pro"}
             </Link>
           </div>
         </div>
@@ -191,11 +201,11 @@ export default function PricingPage() {
             ) : (
               <button
                 type="button"
-                onClick={() => setShowModal(true)}
+                onClick={handleProUpgradeClick}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-xs font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500 transition-all cursor-pointer"
               >
                 <Zap className="h-4 w-4 fill-white" />
-                <span>Upgrade to Pro Now</span>
+                <span>{!user ? "Sign In to Upgrade to Pro" : "Upgrade to Pro Now"}</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
             )}

@@ -217,6 +217,19 @@ export function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalProps) {
             <Check className="h-5 w-5" />
             <span>Payment Verified! You are now PRO 🎉</span>
           </div>
+        ) : !user ? (
+          <div className="space-y-2">
+            <a
+              href="/login?redirect=/pricing"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-500 transition-all cursor-pointer"
+            >
+              <span>Sign In with Google / Email to Continue</span>
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <p className="text-center text-[11px] text-zinc-400">
+              You must sign in so your Pro subscription is linked to your account.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             <button
