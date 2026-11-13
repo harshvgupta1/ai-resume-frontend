@@ -5,27 +5,31 @@ import Link from "next/link";
 import { FileText, Briefcase, TrendingUp, CheckCircle, ArrowUpRight, Plus, X, Sparkles, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { ResumeScan, JobApplication } from "@/types";
 import { api } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
   const [scans, setScans] = useState<ResumeScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedScan, setSelectedScan] = useState<ResumeScan | null>(null);
-  const [appStats, setAppStats] = useState({ active: 8, interviews: 3 });
+  const [appStats, setAppStats] = useState({ active: 0, interviews: 0 });
 
   useEffect(() => {
-    // 1. Initial load from localStorage for instant render
-    let localScans: ResumeScan[] = [];
-    try {
-      const stored = localStorage.getItem("resume_scans");
-      if (stored) {
-        localScans = JSON.parse(stored);
-        setScans(localScans);
-      }
-    } catch (e) {
-      console.warn("Error reading local scans", e);
-    }
+    // Clear any stale localStorage scans; backend is the source of truth
+    localStorage.removeItem("resume_scans");
+
+    // Fetch all stored scans from MySQL backend
+    api
+      .get("/ai/history")
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setScans(res.data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not fetch remote scans from /api/ai/history:", err?.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     // Read stored job tracker applications to compute active & interviews stats
     try {
@@ -37,81 +41,7 @@ export default function DashboardPage() {
         setAppStats({ active, interviews });
       }
     } catch (e) {}
-
-    // 2. Fetch latest stored scans from MySQL Backend
-    api
-      .get("/ai/history")
-      .then((res) => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          const backendScans: ResumeScan[] = res.data;
-          // Merge backend scans with any local scans, prioritizing backend
-          const scanMap = new Map<string, ResumeScan>();
-          backendScans.forEach((s) => scanMap.set(s.id, s));
-          localScans.forEach((s) => {
-            if (!scanMap.has(s.id)) {
-              scanMap.set(s.id, s);
-            }
-          });
-          const merged = Array.from(scanMap.values());
-          setScans(merged);
-          localStorage.setItem("resume_scans", JSON.stringify(merged));
-        } else if (localScans.length === 0) {
-          // If neither backend nor localStorage has any scans yet, provide initial seed scans
-          const seedScans: ResumeScan[] = [
-            {
-              id: "scan-1",
-              candidateName: user?.name || "Harsh Vardhan Gupta",
-              targetRole: "Full Stack Engineer (React/Node/GCP)",
-              matchScore: 88,
-              verdict: "Strong Match",
-              createdAt: "Nov 7, 02:30 PM",
-              fileName: "Harsh_FullStack_Resume.pdf",
-              matchingSkills: ["React.js", "Node.js", "TypeScript", "GCP Cloud Run", "MySQL", "Docker"],
-              missingSkills: ["Kubernetes", "GraphQL"],
-              strengths: ["Strong full-stack architecture background", "Proven CI/CD and cloud deployment skills"],
-              improvements: ["Add quantified business metrics to bullets"],
-              suggestedResumeEdits: ["Highlight Cloud SQL connection pooling in your backend section"],
-            },
-            {
-              id: "scan-2",
-              candidateName: user?.name || "Harsh Vardhan Gupta",
-              targetRole: "Senior Frontend Engineer (Next.js)",
-              matchScore: 92,
-              verdict: "Strong Match",
-              createdAt: "Nov 6, 04:15 PM",
-              fileName: "Harsh_Frontend_Resume.pdf",
-              matchingSkills: ["Next.js 16", "React 19", "Tailwind CSS", "TypeScript", "State Management"],
-              missingSkills: ["Micro-frontends"],
-              strengths: ["Exceptional modern frontend architecture experience"],
-              improvements: ["Include web performance Core Web Vitals achievements"],
-              suggestedResumeEdits: ["Mention Next.js App Router streaming SSR optimization"],
-            },
-          ];
-          setScans(seedScans);
-          localStorage.setItem("resume_scans", JSON.stringify(seedScans));
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not fetch remote scans from /api/ai/history:", err?.message);
-        if (localScans.length === 0) {
-          const fallbackSeed: ResumeScan[] = [
-            {
-              id: "scan-1",
-              candidateName: user?.name || "Harsh Vardhan Gupta",
-              targetRole: "Full Stack Engineer (React/Node/GCP)",
-              matchScore: 88,
-              verdict: "Strong Match",
-              createdAt: "Today at 2:30 PM",
-              fileName: "Harsh_FullStack_Resume.pdf",
-            },
-          ];
-          setScans(fallbackSeed);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [user]);
+  }, []);
 
   // Close details modal on Escape
   useEffect(() => {
@@ -207,8 +137,8 @@ export default function DashboardPage() {
       <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
         <div className="border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Recent Resume Analyses</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Stored scans from MySQL database and your session</p>
+            <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">All Resume Analyses</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">{scans.length} scan{scans.length !== 1 ? "s" : ""} stored in Cloud SQL</p>
           </div>
           <Link href="/upload" className="text-xs font-semibold text-indigo-600 hover:text-indigo-500 flex items-center gap-1">
             <span>Analyze another</span>

@@ -66,12 +66,20 @@ export default function UploadPage() {
       return;
     }
 
-    const detectedRole =
-      jdToAnalyze
-        .split("\n")[0]
-        .replace(/^(looking for|we are hiring|hiring|role:|job title:)/i, "")
-        .trim()
-        .slice(0, 45) || "Full Stack Engineer";
+    // Smart role extraction — look for explicit title patterns, else first meaningful line
+    const extractRole = (jd: string): string => {
+      const patterns = [
+        /(?:looking for|hiring a?n?|role[:\s]+|position[:\s]+|job title[:\s]+)\s*([A-Z][A-Za-z\s\/\(\)&]+?)(?:\s*[-–,\n]|with \d|\s+to\s)/i,
+        /^([A-Z][A-Za-z\s\/]+?)(?:\s*[-–,\n])/m,
+      ];
+      for (const p of patterns) {
+        const m = jd.slice(0, 500).match(p);
+        if (m) return m[1].trim().slice(0, 50);
+      }
+      return jd.split("\n").find(l => l.trim().length > 3 && l.trim().length < 60)?.trim().slice(0, 50) || "Software Engineer";
+    };
+
+    const detectedRole = extractRole(jdToAnalyze);
 
     setError(null);
     setLoading(true);
