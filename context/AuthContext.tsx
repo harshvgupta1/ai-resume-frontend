@@ -2,13 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/api";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-}
+import { User } from "@/types";
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +11,8 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   loginWithGoogleCredential: (credential: string) => Promise<boolean>;
+  upgradeToPro: (plan?: "pro") => Promise<boolean>;
+  refreshUser: () => Promise<void>;
   demoLogin: () => void;
 }
 
@@ -84,6 +80,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      if (res.data?.user) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+    } catch (e) {}
+  };
+
+  const upgradeToPro = async (targetPlan: "pro" = "pro"): Promise<boolean> => {
+    try {
+      const res = await api.post("/auth/upgrade", { plan: targetPlan });
+      if (res.data?.user) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Upgrade error:", err);
+      return false;
+    }
+  };
+
   // One-click demo login for fast local testing
   const demoLogin = () => {
     const demoUser: User = {
@@ -91,6 +112,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: "Harsh Vardhan Gupta",
       email: "harsh872000@gmail.com",
       avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+      plan: "free",
+      scansUsed: 1,
+      scansLimit: 3,
     };
     login("demo-jwt-token-2026", demoUser);
   };
@@ -104,6 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         loginWithGoogleCredential,
+        upgradeToPro,
+        refreshUser,
         demoLogin,
       }}
     >

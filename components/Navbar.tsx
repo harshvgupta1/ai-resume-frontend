@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Sparkles, FileText, LayoutDashboard, Briefcase, LogOut, User as UserIcon } from "lucide-react";
+import { Sparkles, FileText, LayoutDashboard, Briefcase, LogOut, User as UserIcon, Zap } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
@@ -34,6 +34,7 @@ export function Navbar() {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/upload", label: "Analyze Resume", icon: FileText },
     { href: "/tracker", label: "Job Tracker", icon: Briefcase },
+    { href: "/pricing", label: "Pricing", icon: Sparkles },
   ];
 
   return (
@@ -73,9 +74,19 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {user.plan !== "pro" && (
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-850 dark:bg-indigo-950/60 dark:text-indigo-300 transition-colors"
+                >
+                  <Zap className="h-3 w-3 fill-indigo-600 text-indigo-600 dark:fill-indigo-400 dark:text-indigo-400" />
+                  <span className="hidden sm:inline">Upgrade</span>
+                </Link>
+              )}
+
               <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 dark:border-zinc-800 dark:bg-zinc-900">
                 {user.avatarUrl ? (
                   <img
@@ -91,6 +102,11 @@ export function Navbar() {
                 <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 hidden md:inline">
                   {user.name.split(" ")[0]}
                 </span>
+                {user.plan === "pro" && (
+                  <span className="rounded-full bg-gradient-to-r from-amber-500 to-indigo-600 px-1.5 py-0.2 text-[9px] font-black text-white uppercase tracking-wider shadow-sm">
+                    PRO
+                  </span>
+                )}
               </div>
 
               <button

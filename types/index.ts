@@ -1,4 +1,17 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  plan?: "free" | "pro";
+  scansUsed?: number;
+  scansLimit?: number;
+  proExpiresAt?: string;
+}
+
 export interface MatchAnalysis {
+  id?: string;
+  targetRole?: string;
   matchScore: number; // 0 - 100
   verdict: "Strong Match" | "Moderate Match" | "Low Match";
   matchingSkills: string[];
@@ -6,6 +19,9 @@ export interface MatchAnalysis {
   strengths: string[];
   improvements: string[];
   suggestedResumeEdits: string[];
+  userPlan?: "free" | "pro";
+  scansUsed?: number;
+  scansLimit?: number;
 }
 
 export interface ResumeScan {
