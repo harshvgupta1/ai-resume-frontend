@@ -1,41 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Briefcase, MapPin, DollarSign, Calendar, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Briefcase, MapPin, Calendar, ChevronRight } from "lucide-react";
 import { JobApplication } from "@/types";
-
-const initialJobs: JobApplication[] = [
-  {
-    id: "job-1",
-    company: "Google Cloud",
-    role: "Full Stack Software Engineer",
-    salary: "$145,000 - $165,000",
-    location: "Bangalore / Remote",
-    status: "interviewing",
-    appliedDate: "Nov 02, 2026",
-    matchScore: 92,
-  },
-  {
-    id: "job-2",
-    company: "Stripe",
-    role: "Full Stack Engineer (Node/React)",
-    salary: "$130,000 - $150,000",
-    location: "Remote",
-    status: "applied",
-    appliedDate: "Nov 05, 2026",
-    matchScore: 86,
-  },
-  {
-    id: "job-3",
-    company: "Razorpay",
-    role: "Senior Frontend Engineer",
-    salary: "₹28 - 35 LPA",
-    location: "Bangalore",
-    status: "offered",
-    appliedDate: "Oct 24, 2026",
-    matchScore: 89,
-  },
-];
 
 const COLUMNS: { id: JobApplication["status"]; label: string; color: string }[] = [
   { id: "applied", label: "Applied", color: "border-blue-500" },
@@ -45,10 +12,25 @@ const COLUMNS: { id: JobApplication["status"]; label: string; color: string }[] 
 ];
 
 export default function TrackerPage() {
-  const [jobs, setJobs] = useState<JobApplication[]>(initialJobs);
+  const [jobs, setJobs] = useState<JobApplication[]>([]);
   const [newCompany, setNewCompany] = useState("");
   const [newRole, setNewRole] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("job_applications");
+      if (stored) setJobs(JSON.parse(stored));
+    } catch (e) {}
+  }, []);
+
+  // Persist to localStorage whenever jobs change
+  useEffect(() => {
+    try {
+      localStorage.setItem("job_applications", JSON.stringify(jobs));
+    } catch (e) {}
+  }, [jobs]);
 
   const handleAddJob = (e: React.FormEvent) => {
     e.preventDefault();
