@@ -9,7 +9,6 @@ import { MatchAnalysis, ResumeScan } from "@/types";
 export default function UploadPage() {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MatchAnalysis | null>(null);
@@ -49,12 +48,6 @@ export default function UploadPage() {
   };
 
   const handleFillSample = () => {
-    setResumeText(
-      "Harsh Vardhan Gupta - Software Engineer\n" +
-      "3 years of experience shipping production MERN & Next.js platforms.\n" +
-      "Skills: React.js, Next.js, TypeScript, Node.js, Express, MySQL, GCP Cloud Run, Docker, CI/CD, Redis, BullMQ.\n" +
-      "Experience at Bridgeness Technologies (Reelax) building creator discovery dashboards and payout microservices."
-    );
     setJobDescription(
       "Looking for a Full Stack Software Engineer with 2-4 years of experience in React.js, TypeScript, Node.js, Express, and Cloud platforms (GCP / AWS). Must be familiar with Docker, CI/CD pipelines, relational databases (MySQL / PostgreSQL), and REST APIs."
     );
@@ -62,11 +55,10 @@ export default function UploadPage() {
   };
 
   const handleAnalyze = async () => {
-    const textToAnalyze = resumeText.trim();
     const jdToAnalyze = jobDescription.trim();
 
-    if (!textToAnalyze && !file) {
-      setError("Please upload a resume file or paste your resume text.");
+    if (!file) {
+      setError("Please upload a resume file (PDF, DOC, or DOCX) to continue.");
       return;
     }
     if (!jdToAnalyze) {
@@ -87,21 +79,13 @@ export default function UploadPage() {
 
     try {
       let res;
-      if (file) {
-        const formData = new FormData();
-        formData.append("resume", file);
-        formData.append("jobDescription", jdToAnalyze);
-        formData.append("targetRole", detectedRole);
-        res = await api.post("/ai/match-file", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        res = await api.post("/ai/match", {
-          resumeText: textToAnalyze,
-          jobDescription: jdToAnalyze,
-          targetRole: detectedRole,
-        });
-      }
+      const formData = new FormData();
+      formData.append("resume", file);
+      formData.append("jobDescription", jdToAnalyze);
+      formData.append("targetRole", detectedRole);
+      res = await api.post("/ai/match-file", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (res.data) {
         setResult(res.data);
@@ -195,20 +179,6 @@ export default function UploadPage() {
                 onChange={handleFileChange}
               />
             </label>
-
-            <div className="my-4 flex items-center gap-3">
-              <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-              <span className="text-xs text-zinc-400 font-medium uppercase">Or paste text</span>
-              <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-            </div>
-
-            <textarea
-              rows={5}
-              placeholder="Paste candidate resume text directly here..."
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
           </div>
 
           {/* Job Description Box */}
