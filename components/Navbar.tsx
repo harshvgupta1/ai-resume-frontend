@@ -37,7 +37,8 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20">
@@ -120,47 +121,49 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Sign Out Confirmation Modal */}
-      {showConfirmLogout && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={() => setShowConfirmLogout(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 transition-all transform scale-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400 mb-4 shadow-sm">
-                <LogOut className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                Sign Out?
-              </h3>
-              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                Are you sure you want to sign out of ResumeAI? You will need to sign in again to access your resume analyses and job tracker.
-              </p>
+    </header>
 
-              <div className="mt-6 flex w-full items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmLogout(false)}
-                  className="flex-1 rounded-xl border border-zinc-200 bg-white py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmLogout}
-                  className="flex-1 rounded-xl bg-red-600 py-2.5 text-xs font-semibold text-white hover:bg-red-700 shadow-md shadow-red-600/20 transition-all cursor-pointer"
-                >
-                  Yes, Sign Out
-                </button>
-              </div>
+    {/* Sign Out Confirmation Modal — rendered outside <header> so it's truly full-screen centered */}
+    {showConfirmLogout && (
+      <div
+        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        onClick={() => setShowConfirmLogout(false)}
+      >
+        <div
+          className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col items-center text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400 mb-4 shadow-sm">
+              <LogOut className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              Sign Out?
+            </h3>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              Are you sure you want to sign out of ResumeAI? You will need to sign in again to access your resume analyses and job tracker.
+            </p>
+
+            <div className="mt-6 flex w-full items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmLogout(false)}
+                className="flex-1 rounded-xl border border-zinc-200 bg-white py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLogout}
+                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 shadow-md shadow-red-600/20 transition-all cursor-pointer"
+              >
+                Yes, Sign Out
+              </button>
             </div>
           </div>
         </div>
-      )}
-    </header>
+      </div>
+    )}
+    </>
   );
 }
