@@ -18,12 +18,12 @@ export default function UploadPage() {
     try {
       const newScan: ResumeScan = {
         id: data.id || `scan-${Date.now()}`,
-        candidateName: user?.name || "Harsh Vardhan Gupta",
+        candidateName: user?.name || "Guest Candidate",
         targetRole: data.targetRole || targetRoleName,
         matchScore: data.matchScore,
         verdict: data.verdict,
         createdAt: "Just now",
-        fileName: file ? file.name : "Harsh_Resume.pdf",
+        fileName: file ? file.name : "Resume.pdf",
         matchingSkills: data.matchingSkills,
         missingSkills: data.missingSkills,
         strengths: data.strengths,
@@ -31,10 +31,13 @@ export default function UploadPage() {
         suggestedResumeEdits: data.suggestedResumeEdits,
       };
 
-      const existingStr = localStorage.getItem("resume_scans");
-      const existing: ResumeScan[] = existingStr ? JSON.parse(existingStr) : [];
-      const filtered = existing.filter((s) => s.id !== newScan.id);
-      localStorage.setItem("resume_scans", JSON.stringify([newScan, ...filtered]));
+      // Only store to localStorage if user is NOT logged in (logged-in users persist to MySQL)
+      if (!user) {
+        const existingStr = localStorage.getItem("resume_scans");
+        const existing: ResumeScan[] = existingStr ? JSON.parse(existingStr) : [];
+        const filtered = existing.filter((s) => s.id !== newScan.id);
+        localStorage.setItem("resume_scans", JSON.stringify([newScan, ...filtered]));
+      }
     } catch (e) {
       console.warn("Could not save scan to localStorage", e);
     }

@@ -2,34 +2,67 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FileText, Briefcase, TrendingUp, CheckCircle, ArrowUpRight, Plus, X, Sparkles, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  FileText,
+  Briefcase,
+  TrendingUp,
+  CheckCircle,
+  ArrowUpRight,
+  Plus,
+  X,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  Trash2,
+  HardDrive,
+  Cloud,
+} from "lucide-react";
 import { ResumeScan, JobApplication } from "@/types";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
   const [scans, setScans] = useState<ResumeScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedScan, setSelectedScan] = useState<ResumeScan | null>(null);
   const [appStats, setAppStats] = useState({ active: 0, interviews: 0 });
 
   useEffect(() => {
-    // Clear any stale localStorage scans; backend is the source of truth
-    localStorage.removeItem("resume_scans");
+    if (authLoading) return;
 
-    // Fetch all stored scans from MySQL backend
-    api
-      .get("/ai/history")
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setScans(res.data);
+    if (user) {
+      // Authenticated user: fetch saved analyses from Cloud SQL backend
+      api
+        .get("/ai/history")
+        .then((res) => {
+          if (Array.isArray(res.data)) {
+            setScans(res.data);
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not fetch remote scans from /api/ai/history:", err?.message);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      // Unauthenticated / guest user: load strictly from localStorage
+      try {
+        const stored = localStorage.getItem("resume_scans");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setScans(Array.isArray(parsed) ? parsed : []);
+        } else {
+          setScans([]);
         }
-      })
-      .catch((err) => {
-        console.warn("Could not fetch remote scans from /api/ai/history:", err?.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      } catch (e) {
+        console.warn("Error reading local scans", e);
+        setScans([]);
+      }
+      setLoading(false);
+    }
 
     // Read stored job tracker applications to compute active & interviews stats
     try {
@@ -41,7 +74,33 @@ export default function DashboardPage() {
         setAppStats({ active, interviews });
       }
     } catch (e) {}
-  }, []);
+  }, [user, authLoading]);
+
+  const handleDeleteScan = async (scanId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this scan?")) return;
+
+    // Remove from UI state
+    setScans((prev) => prev.filter((s) => s.id !== scanId));
+
+    // Remove from localStorage
+    try {
+      const stored = localStorage.getItem("resume_scans");
+      if (stored) {
+        const parsed: ResumeScan[] = JSON.parse(stored);
+        localStorage.setItem("resume_scans", JSON.stringify(parsed.filter((s) => s.id !== scanId)));
+      }
+    } catch (err) {}
+
+    // If authenticated, also delete from MySQL
+    if (user) {
+      try {
+        await api.delete(`/ai/history/${scanId}`);
+      } catch (err) {
+        console.warn("Could not delete from backend:", err);
+      }
+    }
+  };
 
   // Close details modal on Escape
   useEffect(() => {
@@ -86,6 +145,31 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Guest Mode Notice */}
+      {!user && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-indigo-200/60 bg-indigo-50/50 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+              <HardDrive className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                Guest Mode: Scans saved locally in your browser
+              </p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                You are not signed in. Data is kept in localStorage. Sign in to sync your scans securely to Cloud SQL.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-xl bg-white px-3.5 py-1.5 text-xs font-semibold text-indigo-600 shadow-sm border border-indigo-200 hover:bg-indigo-50 dark:bg-zinc-900 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-zinc-800 shrink-0 transition-colors"
+          >
+            Sign In / Sign Up
+          </Link>
+        </div>
+      )}
+
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -96,7 +180,19 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-4 text-2xl font-black text-zinc-900 dark:text-zinc-50">{totalScans}</div>
-          <div className="mt-1 text-xs text-emerald-600 font-medium">Stored in Cloud SQL & Local</div>
+          <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600 font-medium">
+            {user ? (
+              <>
+                <Cloud className="h-3 w-3" />
+                <span>Cloud SQL Synced</span>
+              </>
+            ) : (
+              <>
+                <HardDrive className="h-3 w-3" />
+                <span>Stored in Browser</span>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -138,7 +234,9 @@ export default function DashboardPage() {
         <div className="border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">All Resume Analyses</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">{scans.length} scan{scans.length !== 1 ? "s" : ""} stored in Cloud SQL</p>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              {scans.length} scan{scans.length !== 1 ? "s" : ""} • {user ? "Stored in Cloud SQL" : "Stored locally in browser"}
+            </p>
           </div>
           <Link href="/upload" className="text-xs font-semibold text-indigo-600 hover:text-indigo-500 flex items-center gap-1">
             <span>Analyze another</span>
@@ -186,7 +284,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <div className="text-right">
                     <div className="text-sm font-black text-indigo-600 dark:text-indigo-400">{scan.matchScore}%</div>
                     <div className="text-[10px] text-zinc-400">{scan.verdict || "Match score"}</div>
@@ -198,6 +296,15 @@ export default function DashboardPage() {
                     className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                   >
                     View Details
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteScan(scan.id, e)}
+                    title="Delete this scan"
+                    className="rounded-lg p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
