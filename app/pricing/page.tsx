@@ -1,19 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Sparkles, Zap, Shield, ArrowRight, HelpCircle, Lock } from "lucide-react";
+import { Check, Sparkles, Zap, Shield, ArrowRight, HelpCircle, Lock, Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { api } from "@/lib/api";
+import { Subscription } from "@/types";
 
 export default function PricingPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [showModal, setShowModal] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   const isPro = user?.plan === "pro";
+
+  useEffect(() => {
+    if (user) {
+      api
+        .get("/payment/subscription")
+        .then((res) => {
+          if (res.data?.subscription) {
+            setSubscription(res.data.subscription);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
 
   const handleProUpgradeClick = () => {
     if (!user) {
@@ -37,6 +53,57 @@ export default function PricingPage() {
         <p className="mt-4 text-base sm:text-lg text-zinc-600 dark:text-zinc-400">
           Land more interviews by matching your resume directly to ATS systems with Gemini AI intelligence.
         </p>
+
+        {/* Active Subscription Status Banner */}
+        {isPro && (
+          <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/30 text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                      {subscription?.billingCycle === "yearly" ? "ResumeAI Pro Annual" : "ResumeAI Pro Monthly"}
+                    </h3>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 uppercase tracking-wider">
+                      {subscription?.status || "Active"}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                    {subscription?.expiresAtFormatted ? (
+                      <>
+                        Expires on <strong>{subscription.expiresAtFormatted}</strong>
+                        {typeof subscription.daysRemaining === "number" && (
+                          <span className="text-emerald-700 dark:text-emerald-300 font-semibold ml-1.5">
+                            ({subscription.daysRemaining} days remaining)
+                          </span>
+                        )}
+                      </>
+                    ) : user?.proExpiresAt ? (
+                      <>
+                        Expires on{" "}
+                        <strong>
+                          {new Date(user.proExpiresAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </strong>
+                      </>
+                    ) : (
+                      "Unlimited Gemini AI scans and tailored cover letters active."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-900/40 px-3 py-1.5 rounded-lg text-center sm:text-right">
+                {subscription?.amountFormatted || "₹499/mo"}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Billing Toggle */}
         <div className="mt-8 flex items-center justify-center gap-3">
@@ -194,9 +261,16 @@ export default function PricingPage() {
 
           <div className="mt-8">
             {isPro ? (
-              <div className="flex w-full items-center justify-center rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white shadow-md shadow-emerald-600/20">
-                <Check className="h-4 w-4 mr-1.5" />
-                <span>You are on Pro</span>
+              <div className="space-y-2">
+                <div className="flex w-full items-center justify-center rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white shadow-md shadow-emerald-600/20">
+                  <Check className="h-4 w-4 mr-1.5" />
+                  <span>You are on Pro</span>
+                </div>
+                {(subscription?.expiresAtFormatted || user?.proExpiresAt) && (
+                  <p className="text-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    Expires: {subscription?.expiresAtFormatted || new Date(user!.proExpiresAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                )}
               </div>
             ) : (
               <button
@@ -240,16 +314,21 @@ export default function PricingPage() {
 
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
             <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-              Which AI model powers the ATS scanner?
+              How do I know when my subscription expires?
             </h4>
             <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              We use Google's official Gemini 3.5 Flash model, hosted on high-throughput Google Cloud infrastructure for sub-second, intelligent candidate matching.
+              Your exact subscription renewal or expiration date and remaining days are tracked in real time and displayed at the top of this Pricing page and on your Dashboard.
             </p>
           </div>
         </div>
       </div>
 
-      <UpgradeModal isOpen={showModal} onClose={() => setShowModal(false)} />
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        defaultCycle={billingCycle}
+      />
     </div>
   );
 }

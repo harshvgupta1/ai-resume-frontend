@@ -21,12 +21,13 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   reason?: string;
+  defaultCycle?: "monthly" | "yearly";
 }
 
-export function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalProps) {
+export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly" }: UpgradeModalProps) {
   const { user, refreshUser, upgradeToPro } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(defaultCycle);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

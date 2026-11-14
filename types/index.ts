@@ -1,3 +1,21 @@
+export interface Subscription {
+  id: string;
+  plan: string;
+  billingCycle: "monthly" | "yearly";
+  status: "active" | "expired" | "cancelled" | "past_due";
+  amount: number;
+  currency: string;
+  amountFormatted?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  expiresAtFormatted?: string;
+  daysRemaining?: number;
+  isExpired?: boolean;
+  cancelAtPeriodEnd?: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -7,6 +25,7 @@ export interface User {
   scansUsed?: number;
   scansLimit?: number;
   proExpiresAt?: string;
+  subscription?: Subscription | null;
 }
 
 export interface MatchAnalysis {

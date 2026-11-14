@@ -133,7 +133,22 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {user?.plan === "pro" && (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+              <span>PRO Active</span>
+              {user.proExpiresAt && (
+                <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400">
+                  • Expires {new Date(user.proExpiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              )}
+            </Link>
+          )}
+
           <Link
             href="/upload"
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
