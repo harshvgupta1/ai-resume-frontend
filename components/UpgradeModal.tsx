@@ -12,11 +12,10 @@ import {
   CreditCard,
   QrCode,
   AlertTriangle,
-  Globe,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { initiateRazorpayPayment } from "@/lib/razorpay";
-import { User } from "@/types";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -26,6 +25,7 @@ interface UpgradeModalProps {
 }
 
 const EXCHANGE_RATE = 86.0;
+const GST_RATE = 0.18; // 18% Statutory GST
 
 export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly" }: UpgradeModalProps) {
   const { user, refreshUser, upgradeToPro } = useAuth();
@@ -38,17 +38,28 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
   if (!isOpen) return null;
 
   const basePriceUsd = billingCycle === "monthly" ? 9 : 59;
-  const inrAmount = Math.round(basePriceUsd * EXCHANGE_RATE);
   
-  const displayPrice = paymentMode === "upi" ? `₹${inrAmount.toLocaleString("en-IN")}` : `$${basePriceUsd}`;
+  // INR Calculation with 18% GST
+  const inrBase = Math.round(basePriceUsd * EXCHANGE_RATE); // ₹774 or ₹5,074
+  const inrGst = Math.round(inrBase * GST_RATE); // 18% GST: ₹139 or ₹913
+  const inrTotal = inrBase + inrGst; // ₹913 or ₹5,987
+
+  // USD Calculation with 18% GST
+  const usdGst = +(basePriceUsd * GST_RATE).toFixed(2); // $1.62 or $10.62
+  const usdTotal = +(basePriceUsd + usdGst).toFixed(2); // $10.62 or $69.62
+
+  const displayTotal = paymentMode === "upi" ? `₹${inrTotal.toLocaleString("en-IN")}` : `$${usdTotal}`;
+  const displayBase = paymentMode === "upi" ? `₹${inrBase.toLocaleString("en-IN")}` : `$${basePriceUsd}`;
+  const displayGst = paymentMode === "upi" ? `₹${inrGst.toLocaleString("en-IN")}` : `$${usdGst}`;
+
   const perMonthText =
     paymentMode === "upi"
       ? billingCycle === "monthly"
-        ? `₹${inrAmount}/mo (converted from $9)`
-        : `~₹${Math.round(inrAmount / 12)}/mo (billed ₹${inrAmount.toLocaleString("en-IN")}/yr)`
+        ? `₹${inrTotal}/mo (inc. 18% GST)`
+        : `~₹${Math.round(inrTotal / 12)}/mo (billed ₹${inrTotal.toLocaleString("en-IN")}/yr)`
       : billingCycle === "monthly"
-      ? "$9 / mo"
-      : "~$4.90 / mo (billed $59/yr)";
+      ? "$9 / mo + 18% GST"
+      : "~$4.90 / mo (billed $59/yr + GST)";
 
   const handleRazorpayCheckout = async () => {
     if (!user) {
@@ -204,7 +215,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
           <div className="flex items-baseline justify-between">
             <div>
               <span className="text-3xl font-black text-zinc-900 dark:text-zinc-50">
-                {displayPrice}
+                {displayTotal}
               </span>
               <span className="text-xs text-zinc-500 ml-1.5">
                 {perMonthText}
@@ -215,11 +226,24 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
             </span>
           </div>
 
-          {paymentMode === "upi" && (
-            <p className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl border border-emerald-200/80 dark:border-emerald-900/60">
-              💡 Converted from <strong>${basePriceUsd} USD</strong> to <strong>₹{inrAmount} INR</strong> (1 USD = ₹{EXCHANGE_RATE}) for instant UPI (GPay, PhonePe, Paytm, QR).
-            </p>
-          )}
+          {/* Itemized 18% GST Tax Receipt Box */}
+          <div className="mt-3 rounded-xl border border-indigo-200/70 bg-white/80 p-3 text-xs dark:border-indigo-900/60 dark:bg-zinc-950/60 space-y-1.5">
+            <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+              <span className="flex items-center gap-1">
+                <Receipt className="h-3.5 w-3.5 text-zinc-400" />
+                <span>Base Subscription ({paymentMode === "upi" ? "Converted at ₹86/$" : "USD"}):</span>
+              </span>
+              <span className="font-semibold text-zinc-800 dark:text-zinc-200">{displayBase}</span>
+            </div>
+            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 font-medium">
+              <span>+ Statutory 18% GST (CGST 9% + SGST 9% / IGST):</span>
+              <span>+{displayGst}</span>
+            </div>
+            <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between font-bold text-zinc-900 dark:text-zinc-50">
+              <span>Total Payable Amount:</span>
+              <span className="text-indigo-600 dark:text-indigo-400">{displayTotal}</span>
+            </div>
+          </div>
 
           <div className="mt-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
             <div className="flex items-center gap-2">
@@ -298,7 +322,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
                 <>
                   <Zap className="h-4 w-4 fill-white" />
                   <span>
-                    Pay {displayPrice} with {paymentMode === "upi" ? "UPI" : "Card"}
+                    Pay {displayTotal} with {paymentMode === "upi" ? "UPI" : "Card"}
                   </span>
                   <ArrowRight className="h-4 w-4" />
                 </>
