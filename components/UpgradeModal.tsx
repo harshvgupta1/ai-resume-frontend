@@ -12,6 +12,7 @@ import {
   CreditCard,
   QrCode,
   AlertTriangle,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { initiateRazorpayPayment } from "@/lib/razorpay";
@@ -24,17 +25,30 @@ interface UpgradeModalProps {
   defaultCycle?: "monthly" | "yearly";
 }
 
+const EXCHANGE_RATE = 86.0;
+
 export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly" }: UpgradeModalProps) {
   const { user, refreshUser, upgradeToPro } = useAuth();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(defaultCycle);
+  const [paymentMode, setPaymentMode] = useState<"upi" | "card">("upi");
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const currentPrice = billingCycle === "monthly" ? "₹499" : "₹2,999";
-  const perMonthPrice = billingCycle === "monthly" ? "₹499 / mo" : "~₹250 / mo (billed ₹2,999/yr)";
+  const basePriceUsd = billingCycle === "monthly" ? 9 : 59;
+  const inrAmount = Math.round(basePriceUsd * EXCHANGE_RATE);
+  
+  const displayPrice = paymentMode === "upi" ? `₹${inrAmount.toLocaleString("en-IN")}` : `$${basePriceUsd}`;
+  const perMonthText =
+    paymentMode === "upi"
+      ? billingCycle === "monthly"
+        ? `₹${inrAmount}/mo (converted from $9)`
+        : `~₹${Math.round(inrAmount / 12)}/mo (billed ₹${inrAmount.toLocaleString("en-IN")}/yr)`
+      : billingCycle === "monthly"
+      ? "$9 / mo"
+      : "~$4.90 / mo (billed $59/yr)";
 
   const handleRazorpayCheckout = async () => {
     if (!user) {
@@ -47,8 +61,10 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
 
     await initiateRazorpayPayment({
       plan: billingCycle,
+      currency: paymentMode === "upi" ? "INR" : "USD",
+      paymentMethod: paymentMode,
       user,
-      onSuccess: async (updatedUser: User) => {
+      onSuccess: async () => {
         setLoading(false);
         setSuccess(true);
         await refreshUser();
@@ -117,34 +133,69 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="mt-5 flex items-center justify-center sm:justify-start gap-2">
-          <div className="inline-flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80">
-            <button
-              type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={`rounded-lg px-3.5 py-1 text-xs font-semibold transition-all ${
-                billingCycle === "monthly"
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
-            >
-              Monthly (₹499)
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("yearly")}
-              className={`rounded-lg px-3.5 py-1 text-xs font-semibold transition-all flex items-center gap-1 ${
-                billingCycle === "yearly"
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
-            >
-              <span>Annual</span>
-              <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                Save 50%
-              </span>
-            </button>
+        {/* Billing & Payment Mode Toggles */}
+        <div className="mt-5 space-y-3">
+          {/* Billing Cycle */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Billing Cycle:</span>
+            <div className="inline-flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setBillingCycle("monthly")}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+                  billingCycle === "monthly"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                Monthly ($9)
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("yearly")}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all flex items-center gap-1 ${
+                  billingCycle === "yearly"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                <span>Annual ($59)</span>
+                <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  Save 45%
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Payment Method / Currency Preference */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Payment Currency:</span>
+            <div className="inline-flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setPaymentMode("upi")}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+                  paymentMode === "upi"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                <QrCode className="h-3.5 w-3.5 text-emerald-600" />
+                <span>UPI (₹ INR)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMode("card")}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+                  paymentMode === "card"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                <CreditCard className="h-3.5 w-3.5 text-indigo-600" />
+                <span>Card ($ USD)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -153,10 +204,10 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
           <div className="flex items-baseline justify-between">
             <div>
               <span className="text-3xl font-black text-zinc-900 dark:text-zinc-50">
-                {currentPrice}
+                {displayPrice}
               </span>
               <span className="text-xs text-zinc-500 ml-1.5">
-                {perMonthPrice}
+                {perMonthText}
               </span>
             </div>
             <span className="rounded-full bg-indigo-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
@@ -164,13 +215,19 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
             </span>
           </div>
 
-          <div className="mt-4 space-y-2.5 text-xs text-zinc-700 dark:text-zinc-300">
+          {paymentMode === "upi" && (
+            <p className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl border border-emerald-200/80 dark:border-emerald-900/60">
+              💡 Converted from <strong>${basePriceUsd} USD</strong> to <strong>₹{inrAmount} INR</strong> (1 USD = ₹{EXCHANGE_RATE}) for instant UPI (GPay, PhonePe, Paytm, QR).
+            </p>
+          )}
+
+          <div className="mt-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
             <div className="flex items-center gap-2">
               <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
                 <Check className="h-2.5 w-2.5 stroke-[3]" />
               </div>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                Unlimited Gemini 3.5 AI ATS match scans
+                Unlimited Gemini 3.5 Flash AI ATS match scans
               </span>
             </div>
 
@@ -185,22 +242,15 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
               <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
                 <Check className="h-2.5 w-2.5 stroke-[3]" />
               </div>
-              <span>Actionable ATS keywords & bullet point polish</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
-                <Check className="h-2.5 w-2.5 stroke-[3]" />
-              </div>
               <span>Cloud SQL multi-device sync & full scan vault</span>
             </div>
           </div>
 
           {/* Payment Methods Pill */}
           <div className="mt-4 pt-3 border-t border-indigo-100/80 dark:border-indigo-900/40 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
-            <span className="font-medium">Supported Payment Modes:</span>
+            <span className="font-medium">Active Method:</span>
             <span className="font-bold text-indigo-700 dark:text-indigo-300">
-              UPI • Cards • Netbanking
+              {paymentMode === "upi" ? "UPI (GPay / PhonePe / Paytm / QR)" : "International Credit / Debit Cards (USD)"}
             </span>
           </div>
         </div>
@@ -247,7 +297,9 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
               ) : (
                 <>
                   <Zap className="h-4 w-4 fill-white" />
-                  <span>Pay with UPI / Card ({currentPrice})</span>
+                  <span>
+                    Pay {displayPrice} with {paymentMode === "upi" ? "UPI" : "Card"}
+                  </span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

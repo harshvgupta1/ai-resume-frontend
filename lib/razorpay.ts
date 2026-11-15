@@ -26,16 +26,23 @@ export const loadRazorpayScript = (): Promise<boolean> => {
 
 interface InitiatePaymentOptions {
   plan: "monthly" | "yearly";
+  currency?: "USD" | "INR";
+  paymentMethod?: "upi" | "card" | "auto";
   user: User;
   onSuccess: (updatedUser: User) => void;
   onError: (errorMessage: string) => void;
 }
 
 /**
- * Initiates the complete Razorpay checkout flow (UPI, Debit/Credit Cards, Netbanking)
+ * Initiates the complete Razorpay checkout flow:
+ * - If USD: International credit/debit cards
+ * - If INR / UPI: Converted from USD into INR so Indian UPI (GPay/PhonePe/Paytm/QR) is fully supported
+ * - Logs to MySQL `orders` table on creation and `transactions` table on success
  */
 export const initiateRazorpayPayment = async ({
   plan,
+  currency = "USD",
+  paymentMethod = "auto",
   user,
   onSuccess,
   onError,
@@ -47,15 +54,27 @@ export const initiateRazorpayPayment = async ({
       return;
     }
 
-    // 1. Create order on backend
-    const orderRes = await api.post("/payment/create-order", { plan });
-    const { orderId, amount, currency, keyId, label } = orderRes.data;
+    // 1. Create order on backend (logs to `orders` table)
+    const orderRes = await api.post("/payment/create-order", {
+      plan,
+      currency,
+      paymentMethod,
+    });
+
+    const {
+      orderId,
+      amount,
+      currency: targetCurrency,
+      amountFormatted,
+      keyId,
+      label,
+    } = orderRes.data;
 
     // 2. Configure Razorpay Standard Checkout modal
     const options = {
       key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TzlAXGhZ73pPvm",
       amount: amount,
-      currency: currency || "INR",
+      currency: targetCurrency || currency,
       name: "ResumeAI Pro",
       description: label || `${plan === "yearly" ? "Annual" : "Monthly"} Unlimited AI ATS Membership`,
       image: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
@@ -78,12 +97,13 @@ export const initiateRazorpayPayment = async ({
         razorpay_signature: string;
       }) => {
         try {
-          // 3. Cryptographically verify signature on backend
+          // 3. Cryptographically verify signature on backend (logs to `transactions` & `subscriptions` tables)
           const verifyRes = await api.post("/payment/verify", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             plan,
+            paymentMethod,
           });
 
           if (verifyRes.data?.success && verifyRes.data?.user) {
@@ -98,14 +118,14 @@ export const initiateRazorpayPayment = async ({
       },
     };
 
-    const razorpay = new window.Razorpay(options);
-    razorpay.on("payment.failed", (failedRes: any) => {
-      console.error("[Razorpay] Payment failed:", failedRes.error);
-      onError(failedRes.error?.description || "Payment was declined or cancelled.");
+    const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", (response: any) => {
+      console.error("[Razorpay Failure]:", response.error);
+      onError(response.error?.description || "Payment was not completed.");
     });
-    razorpay.open();
-  } catch (err: any) {
-    console.error("Razorpay initiation error:", err);
-    onError(err.response?.data?.error || "Failed to initialize payment order.");
+    rzp.open();
+  } catch (error: any) {
+    console.error("Razorpay initiation error:", error);
+    onError(error.response?.data?.error || error.message || "Failed to initialize payment gateway.");
   }
 };

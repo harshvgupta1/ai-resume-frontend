@@ -214,15 +214,15 @@ export default function PricingPage() {
 
             <div className="mt-6 flex items-baseline">
               <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400">
-                {billingCycle === "monthly" ? "₹499" : "₹2,999"}
+                {billingCycle === "monthly" ? "$9" : "$59"}
               </span>
               <span className="text-xs text-zinc-400 ml-1.5">
-                {billingCycle === "monthly" ? "/ month" : "/ year (~₹250/mo)"}
+                {billingCycle === "monthly" ? "/ month (~₹774)" : "/ year (~$4.90/mo / ~₹5,074)"}
               </span>
             </div>
 
             <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <span>UPI (Google Pay, PhonePe, Paytm) • Cards • Netbanking</span>
+              <span>Pay in USD via Card or converted INR via UPI (GPay, PhonePe, Paytm, QR)</span>
             </div>
 
             <ul className="mt-8 space-y-3.5 text-xs text-zinc-700 dark:text-zinc-300">
