@@ -221,10 +221,6 @@ export default function PricingPage() {
               </span>
             </div>
 
-            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <span>UPI (Google Pay, PhonePe, Paytm, QR) • Cards • Netbanking</span>
-            </div>
-
             <ul className="mt-8 space-y-3.5 text-xs text-zinc-700 dark:text-zinc-300">
               <li className="flex items-center gap-3 font-semibold">
                 <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">

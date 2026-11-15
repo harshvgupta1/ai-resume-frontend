@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Sparkles,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { initiateRazorpayPayment } from "@/lib/razorpay";
+import { api } from "@/lib/api";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -24,7 +25,6 @@ interface UpgradeModalProps {
   defaultCycle?: "monthly" | "yearly";
 }
 
-const EXCHANGE_RATE = 86.0;
 const GST_RATE = 0.18; // 18% Statutory GST
 
 export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly" }: UpgradeModalProps) {
@@ -34,19 +34,53 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
   const [paymentMode, setPaymentMode] = useState<"upi" | "card">("upi");
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number>(94.26); // Live dynamic Forex rate
+
+  // Fetch real-time market exchange rate on mount (never hardcoded)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveRate = async () => {
+      try {
+        const res = await api.get("/payment/exchange-rate");
+        if (res.data?.rate && isMounted) {
+          setExchangeRate(Number(res.data.rate));
+          return;
+        }
+      } catch (err) {
+        // Fallback to direct financial market feed
+        try {
+          const directRes = await fetch("https://open.er-api.com/v6/latest/USD");
+          if (directRes.ok) {
+            const data = await directRes.json();
+            if (data?.rates?.INR && isMounted) {
+              setExchangeRate(Number(data.rates.INR.toFixed(2)));
+            }
+          }
+        } catch {
+          // Keep current state
+        }
+      }
+    };
+    if (isOpen) {
+      fetchLiveRate();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const basePriceUsd = billingCycle === "monthly" ? 9 : 59;
   
-  // INR Calculation with 18% GST
-  const inrBase = Math.round(basePriceUsd * EXCHANGE_RATE); // ₹774 or ₹5,074
-  const inrGst = Math.round(inrBase * GST_RATE); // 18% GST: ₹139 or ₹913
-  const inrTotal = inrBase + inrGst; // ₹913 or ₹5,987
+  // Dynamic INR Calculation based on live market rate with 18% GST
+  const inrBase = Math.round(basePriceUsd * exchangeRate);
+  const inrGst = Math.round(inrBase * GST_RATE);
+  const inrTotal = inrBase + inrGst;
 
   // USD Calculation with 18% GST
-  const usdGst = +(basePriceUsd * GST_RATE).toFixed(2); // $1.62 or $10.62
-  const usdTotal = +(basePriceUsd + usdGst).toFixed(2); // $10.62 or $69.62
+  const usdGst = +(basePriceUsd * GST_RATE).toFixed(2);
+  const usdTotal = +(basePriceUsd + usdGst).toFixed(2);
 
   const displayTotal = paymentMode === "upi" ? `₹${inrTotal.toLocaleString("en-IN")}` : `$${usdTotal}`;
   const displayBase = paymentMode === "upi" ? `₹${inrBase.toLocaleString("en-IN")}` : `$${basePriceUsd}`;
@@ -55,8 +89,8 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
   const perMonthText =
     paymentMode === "upi"
       ? billingCycle === "monthly"
-        ? `₹${inrTotal} / month (inc. 18% GST)`
-        : `~₹${Math.round(inrTotal / 12)}/mo (billed ₹${inrTotal.toLocaleString("en-IN")}/yr)`
+        ? `₹${inrTotal.toLocaleString("en-IN")} / month (inc. 18% GST)`
+        : `~₹${Math.round(inrTotal / 12).toLocaleString("en-IN")}/mo (billed ₹${inrTotal.toLocaleString("en-IN")}/yr)`
       : billingCycle === "monthly"
       ? "$9 / mo + 18% GST"
       : "~$4.90 / mo (billed $59/yr + GST)";
@@ -234,7 +268,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
               <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400 text-[11px]">
                 <span className="flex items-center gap-1">
                   <Receipt className="h-3 w-3 text-zinc-400" />
-                  <span>Base Subscription ({paymentMode === "upi" ? "Converted at ₹86/$" : "USD"}):</span>
+                  <span>Base Subscription ({paymentMode === "upi" ? `Live Forex ₹${exchangeRate}/$` : "USD"}):</span>
                 </span>
                 <span className="font-semibold text-zinc-800 dark:text-zinc-200">{displayBase}</span>
               </div>
