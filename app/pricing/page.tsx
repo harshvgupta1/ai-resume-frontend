@@ -217,16 +217,12 @@ export default function PricingPage() {
                 {billingCycle === "monthly" ? "$9" : "$59"}
               </span>
               <span className="text-xs text-zinc-400 ml-1.5">
-                {billingCycle === "monthly" ? "/ month + 18% GST" : "/ year + 18% GST"}
+                {billingCycle === "monthly" ? "/ month" : "/ year (~$4.90/mo)"}
               </span>
             </div>
 
-            <div className="mt-2 text-xs text-zinc-500 font-medium">
-              <span>UPI: {billingCycle === "monthly" ? "₹774 + ₹139 (18% GST) = ₹913 total" : "₹5,074 + ₹913 (18% GST) = ₹5,987 total"}</span>
-            </div>
-
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <span>Pay in USD via Card or in INR with UPI (GPay, PhonePe, Paytm, QR)</span>
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span>UPI (Google Pay, PhonePe, Paytm, QR) • Cards • Netbanking</span>
             </div>
 
             <ul className="mt-8 space-y-3.5 text-xs text-zinc-700 dark:text-zinc-300">
