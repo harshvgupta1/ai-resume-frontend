@@ -222,47 +222,38 @@ export default function UploadPage() {
           Evaluate how well your candidate profile matches a specific role using Gemini AI analysis.
         </p>
 
-        {/* Quota / Auth Status Banner */}
-        <div className="mt-5 flex justify-center">
-          {!user ? (
-            <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-2 text-xs font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              <Lock className="h-3.5 w-3.5" />
-              <span>Sign in required to claim your <strong>3 free AI resume scans</strong>.</span>
-              <Link
-                href="/login"
-                className="font-bold underline hover:text-amber-950 dark:hover:text-amber-200 ml-1"
-              >
-                Sign In Now →
-              </Link>
-            </div>
-          ) : isPro ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-850 dark:bg-indigo-950/60 dark:text-indigo-300">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-              <span>PRO Member • Unlimited AI Scans Active</span>
-            </div>
-          ) : (
-            <div className="inline-flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Free Plan:</span>
-                <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                  {scansUsed} of {scansLimit} scans used
-                </span>
-                <span className="text-zinc-400">({scansRemaining} remaining)</span>
+        {/* Quota / Auth Status Banner (shown only for signed-in users) */}
+        {user && (
+          <div className="mt-5 flex justify-center">
+            {isPro ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-850 dark:bg-indigo-950/60 dark:text-indigo-300">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span>PRO Member • Unlimited AI Scans Active</span>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setUpgradeReason("Upgrade to Pro for unlimited Gemini AI scans and tailored cover letters.");
-                  setShowUpgradeModal(true);
-                }}
-                className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-500 cursor-pointer"
-              >
-                <Zap className="h-3 w-3 fill-indigo-600" />
-                <span>Upgrade to Pro</span>
-              </button>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="inline-flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">Free Plan:</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                    {scansUsed} of {scansLimit} scans used
+                  </span>
+                  <span className="text-zinc-400">({scansRemaining} remaining)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUpgradeReason("Upgrade to Pro for unlimited Gemini AI scans and tailored cover letters.");
+                    setShowUpgradeModal(true);
+                  }}
+                  className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-500 cursor-pointer"
+                >
+                  <Zap className="h-3 w-3 fill-indigo-600" />
+                  <span>Upgrade to Pro</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Quick Sample Button */}
         {user && (
