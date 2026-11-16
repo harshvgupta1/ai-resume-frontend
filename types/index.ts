@@ -24,6 +24,9 @@ export interface User {
   plan?: "free" | "pro";
   scansUsed?: number;
   scansLimit?: number;
+  scansRemaining?: number;
+  dailyScansUsed?: number;
+  dailyScansLimit?: number;
   proExpiresAt?: string;
   subscription?: Subscription | null;
 }

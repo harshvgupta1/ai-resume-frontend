@@ -177,7 +177,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
               Unlock Unlimited ATS Intelligence
             </h3>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-snug">
-              {reason || "Upgrade to Pro for unlimited AI scans and tailored cover letters."}
+              {reason || "Upgrade to Pro for 24 AI scans daily and tailored cover letters."}
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
                   <Check className="h-2 w-2 stroke-[3]" />
                 </div>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  Unlimited AI ATS Match Scans
+                  24 AI ATS Match Scans Daily
                 </span>
               </div>
 

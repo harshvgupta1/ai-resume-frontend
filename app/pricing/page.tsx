@@ -93,7 +93,7 @@ export default function PricingPage() {
                         </strong>
                       </>
                     ) : (
-                      "Unlimited AI scans and tailored cover letters active."
+                      "24 AI resume scans daily and tailored cover letters active."
                     )}
                   </p>
                 </div>
@@ -176,7 +176,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-zinc-400 line-through">
                 <span className="h-4 w-4 flex items-center justify-center font-bold">✕</span>
-                <span>Unlimited scans</span>
+                <span>24 scans daily</span>
               </li>
               <li className="flex items-center gap-3 text-zinc-400 line-through">
                 <span className="h-4 w-4 flex items-center justify-center font-bold">✕</span>
@@ -226,7 +226,7 @@ export default function PricingPage() {
                 <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
                   <Check className="h-2.5 w-2.5 stroke-[3]" />
                 </div>
-                <span><strong>Unlimited AI Resume Scans</strong></span>
+                <span><strong>24 AI Resume Scans Daily</strong></span>
               </li>
               <li className="flex items-center gap-3">
                 <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">

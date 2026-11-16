@@ -44,9 +44,11 @@ export default function UploadPage() {
   const [copiedCoverLetter, setCopiedCoverLetter] = useState(false);
 
   const isPro = user?.plan === "pro";
+  const scansLimit = isPro ? 24 : 3;
   const scansUsed = user?.scansUsed ?? 0;
-  const scansLimit = 3;
-  const scansRemaining = isPro ? Infinity : Math.max(0, scansLimit - scansUsed);
+  const scansRemaining = user?.scansRemaining !== undefined
+    ? user.scansRemaining
+    : Math.max(0, scansLimit - scansUsed);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,8 +74,14 @@ export default function UploadPage() {
 
     // 2. Enforce scan limit for free tier
     if (!isPro && scansRemaining <= 0) {
-      setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited AI scans!");
+      setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for 24 AI scans daily!");
       setShowUpgradeModal(true);
+      return;
+    }
+
+    // 3. Enforce daily scan limit for Pro subscription
+    if (isPro && scansRemaining <= 0) {
+      setError("Daily limit of 24 scans reached. Your quota resets tomorrow.");
       return;
     }
 
@@ -129,8 +137,10 @@ export default function UploadPage() {
       }
     } catch (err: any) {
       if (err.response?.status === 403 && err.response?.data?.upgradeRequired) {
-        setUpgradeReason(err.response.data.error || "Upgrade to Pro for unlimited AI scans!");
+        setUpgradeReason(err.response.data.error || "Upgrade to Pro for 24 AI scans daily!");
         setShowUpgradeModal(true);
+      } else if (err.response?.status === 403 && err.response?.data?.dailyLimitReached) {
+        setError(err.response.data.error || "Daily limit of 24 scans reached. Quota resets tomorrow.");
       } else if (err.response?.status === 401) {
         setError("Your session has expired. Please sign in again.");
         router.push("/login");
@@ -226,23 +236,38 @@ export default function UploadPage() {
         {user && (
           <div className="mt-5 flex justify-center">
             {isPro ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-850 dark:bg-indigo-950/60 dark:text-indigo-300">
-                <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                <span>PRO Member • Unlimited AI Scans Active</span>
-              </div>
+              scansRemaining <= 0 ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-red-300 bg-red-50 px-4 py-1.5 text-xs font-bold text-red-700 dark:border-red-900 dark:bg-red-950/60 dark:text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                  <span>PRO Member • Daily limit reached (24/24 scans used today). Resets tomorrow.</span>
+                </div>
+              ) : scansRemaining <= 3 ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-1.5 text-xs font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-300 animate-pulse">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                  <span>PRO Member • Only {scansRemaining} scan{scansRemaining === 1 ? "" : "s"} left today</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-850 dark:bg-indigo-950/60 dark:text-indigo-300">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  <span>PRO Member • 24 Daily Scans Active</span>
+                </div>
+              )
             ) : (
               <div className="inline-flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-zinc-700 dark:text-zinc-300">Free Plan:</span>
                   <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                    {scansUsed} of {scansLimit} scans used
+                    {scansRemaining <= 3
+                      ? scansRemaining > 0
+                        ? `Only ${scansRemaining} scan${scansRemaining === 1 ? "" : "s"} left`
+                        : "0 scans left"
+                      : "Active"}
                   </span>
-                  <span className="text-zinc-400">({scansRemaining} remaining)</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    setUpgradeReason("Upgrade to Pro for unlimited AI scans and tailored cover letters.");
+                    setUpgradeReason("Upgrade to Pro for 24 AI scans daily and tailored cover letters.");
                     setShowUpgradeModal(true);
                   }}
                   className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-500 cursor-pointer"
@@ -370,7 +395,7 @@ export default function UploadPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited AI scans!");
+                    setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for 24 AI scans daily!");
                     setShowUpgradeModal(true);
                   }}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 hover:from-amber-600 hover:to-indigo-700 transition-all cursor-pointer"
@@ -378,6 +403,15 @@ export default function UploadPage() {
                   <Zap className="h-4 w-4 fill-white" />
                   <span>Free Limit Reached — Upgrade to Pro</span>
                   <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : isPro && scansRemaining <= 0 ? (
+                <button
+                  type="button"
+                  disabled
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 py-3.5 text-sm font-semibold text-zinc-500 cursor-not-allowed"
+                >
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span>Daily Limit Reached (24/24 used today • Resets tomorrow)</span>
                 </button>
               ) : (
                 <button
