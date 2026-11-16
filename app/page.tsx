@@ -11,7 +11,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pt-20 pb-16 sm:px-6 lg:px-8 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/60 px-4 py-1.5 text-xs font-semibold text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 mb-8 backdrop-blur-sm">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>Powered by Gemini 1.5 Flash & Google Cloud</span>
+          <span>Powered by Next-Gen AI & Modern Cloud Stack</span>
         </div>
 
         <h1 className="mx-auto max-w-4xl text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
@@ -23,7 +23,7 @@ export default function Home() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-          Upload any resume PDF and paste a job description. Our Gemini-powered AI engine parses the candidate's skills, computes an ATS match score, identifies missing requirements, and suggests resume fixes.
+          Upload any resume PDF and paste a job description. Our advanced AI engine parses the candidate's skills, computes an ATS match score, identifies missing requirements, and suggests resume fixes.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -49,7 +49,7 @@ export default function Home() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 mb-4">
               <Bot className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Gemini AI Match Scoring</h3>
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">AI Match Scoring</h3>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
               Calculates a multi-factor score: core tech stack match, soft skills, seniority alignment, and missing keywords.
             </p>
@@ -81,7 +81,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             <div>
               <div className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">&lt; 3s</div>
-              <div className="mt-1 text-sm text-zinc-500">Gemini Parsing Speed</div>
+              <div className="mt-1 text-sm text-zinc-500">AI Parsing Speed</div>
             </div>
             <div>
               <div className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">98%</div>

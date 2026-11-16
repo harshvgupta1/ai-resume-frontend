@@ -48,9 +48,6 @@ export function Navbar() {
           <span className="bg-gradient-to-r from-zinc-900 to-zinc-600 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-400">
             ResumeAI
           </span>
-          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-            GCP + Gemini
-          </span>
         </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">

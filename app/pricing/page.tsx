@@ -51,7 +51,7 @@ export default function PricingPage() {
           Invest in Your Next Career Move
         </h1>
         <p className="mt-4 text-base sm:text-lg text-zinc-600 dark:text-zinc-400">
-          Land more interviews by matching your resume directly to ATS systems with Gemini AI intelligence.
+          Land more interviews by matching your resume directly to ATS systems with advanced AI intelligence.
         </p>
 
         {/* Active Subscription Status Banner */}
@@ -93,7 +93,7 @@ export default function PricingPage() {
                         </strong>
                       </>
                     ) : (
-                      "Unlimited Gemini AI scans and tailored cover letters active."
+                      "Unlimited AI scans and tailored cover letters active."
                     )}
                   </p>
                 </div>
@@ -226,7 +226,7 @@ export default function PricingPage() {
                 <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
                   <Check className="h-2.5 w-2.5 stroke-[3]" />
                 </div>
-                <span><strong>Unlimited Gemini 3.5 Flash AI Scans</strong></span>
+                <span><strong>Unlimited AI Resume Scans</strong></span>
               </li>
               <li className="flex items-center gap-3">
                 <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">

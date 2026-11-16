@@ -65,14 +65,14 @@ export default function UploadPage() {
   const handleAnalyze = async () => {
     // 1. Enforce authentication so free scans are strictly tracked per account
     if (!user) {
-      setError("Please sign in first to claim your 3 free Gemini AI resume scans.");
+      setError("Please sign in first to claim your 3 free AI resume scans.");
       router.push("/login");
       return;
     }
 
     // 2. Enforce scan limit for free tier
     if (!isPro && scansRemaining <= 0) {
-      setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited Gemini AI scans!");
+      setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited AI scans!");
       setShowUpgradeModal(true);
       return;
     }
@@ -219,7 +219,7 @@ export default function UploadPage() {
           AI Resume Matcher & ATS Screener
         </h1>
         <p className="mt-3 text-zinc-600 dark:text-zinc-400">
-          Evaluate how well your candidate profile matches a specific role using Gemini AI analysis.
+          Evaluate how well your candidate profile matches a specific role using advanced AI analysis.
         </p>
 
         {/* Quota / Auth Status Banner (shown only for signed-in users) */}
@@ -242,7 +242,7 @@ export default function UploadPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setUpgradeReason("Upgrade to Pro for unlimited Gemini AI scans and tailored cover letters.");
+                    setUpgradeReason("Upgrade to Pro for unlimited AI scans and tailored cover letters.");
                     setShowUpgradeModal(true);
                   }}
                   className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-500 cursor-pointer"
@@ -280,7 +280,7 @@ export default function UploadPage() {
             Sign In to Analyze Your Resume
           </h2>
           <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
-            To accurately credit your <strong>3 free Gemini AI resume scans</strong> and protect your confidential career data, please sign in or create a free account first.
+            To accurately credit your <strong>3 free AI resume scans</strong> and protect your confidential career data, please sign in or create a free account first.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -306,8 +306,8 @@ export default function UploadPage() {
               <div>Per Account</div>
             </div>
             <div>
-              <div className="font-bold text-zinc-900 dark:text-zinc-100 text-xs">Gemini 3.5</div>
-              <div>AI Analysis</div>
+              <div className="font-bold text-zinc-900 dark:text-zinc-100 text-xs">Advanced AI</div>
+              <div>ATS Analysis</div>
             </div>
             <div>
               <div className="font-bold text-zinc-900 dark:text-zinc-100 text-xs">Cloud SQL</div>
@@ -370,7 +370,7 @@ export default function UploadPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited Gemini AI scans!");
+                    setUpgradeReason("You have used all 3 free scans. Upgrade to Pro for unlimited AI scans!");
                     setShowUpgradeModal(true);
                   }}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 hover:from-amber-600 hover:to-indigo-700 transition-all cursor-pointer"
@@ -388,7 +388,7 @@ export default function UploadPage() {
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Analyzing with Gemini AI...</span>
+                      <span>Analyzing Resume...</span>
                     </>
                   ) : (
                     <>
@@ -469,7 +469,7 @@ export default function UploadPage() {
                       {loadingCoverLetter ? (
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          <span>Writing with Gemini...</span>
+                          <span>Writing Cover Letter...</span>
                         </>
                       ) : (
                         <>
@@ -536,7 +536,7 @@ export default function UploadPage() {
                 <Sparkles className="h-12 w-12 text-zinc-300 dark:text-zinc-700 mb-3" />
                 <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">Analysis Preview</h3>
                 <p className="mt-1 max-w-sm text-xs text-zinc-400">
-                  Upload your resume and target job requirements on the left, then run Gemini AI analysis to generate real-time ATS match insights.
+                  Upload your resume and target job requirements on the left, then run AI analysis to generate real-time ATS match insights.
                 </p>
               </div>
             )}

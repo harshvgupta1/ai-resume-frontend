@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ResumeAI | AI Resume Screener & Job Match Tracker",
-  description: "Screen resumes against job descriptions, get Gemini AI powered ATS scores, and track your job applications with a full stack Next.js and Node.js architecture.",
+  description: "Screen resumes against job descriptions, get AI-powered ATS scores, and track your job applications with a modern full stack Next.js and Node.js architecture.",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-500">
-            Built with Next.js, Node.js, Express, Google Cloud & Gemini AI
+            Built with Next.js, Node.js, Express & Advanced AI Architecture
           </footer>
         </Providers>
       </body>

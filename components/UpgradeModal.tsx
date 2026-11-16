@@ -177,7 +177,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
               Unlock Unlimited ATS Intelligence
             </h3>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-snug">
-              {reason || "Upgrade to Pro for unlimited Gemini AI scans and tailored cover letters."}
+              {reason || "Upgrade to Pro for unlimited AI scans and tailored cover letters."}
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export function UpgradeModal({ isOpen, onClose, reason, defaultCycle = "monthly"
                   <Check className="h-2 w-2 stroke-[3]" />
                 </div>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  Unlimited Gemini 3.5 Flash AI ATS match scans
+                  Unlimited AI ATS Match Scans
                 </span>
               </div>
 
