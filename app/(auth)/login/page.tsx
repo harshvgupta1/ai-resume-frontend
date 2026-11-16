@@ -4,13 +4,14 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import { Sparkles, ArrowRight, Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import { Sparkles, ArrowRight, Mail, Lock, AlertCircle, Loader2, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get("redirect") || "/dashboard";
+  const isSessionExpired = searchParams.get("expired") === "true";
 
   const { loginWithGoogleCredential, loginWithEmail, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +86,18 @@ function LoginForm() {
             : "Sign in to your candidate account"}
         </p>
       </div>
+
+      {isSessionExpired && (
+        <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300/80 bg-amber-50/90 p-3 text-xs text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/40 dark:text-amber-200">
+          <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="text-left space-y-0.5">
+            <span className="font-bold block text-zinc-900 dark:text-zinc-100">Session Expired (24-Hour Policy)</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block leading-relaxed">
+              For your account security, sessions expire every 24 hours. Please sign in again to continue.
+            </span>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">

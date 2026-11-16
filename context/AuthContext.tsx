@@ -19,15 +19,52 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// 24-hour session expiration policy (MongoDB security standard)
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function isJwtExpired(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load session from localStorage on mount
+  // Load session from localStorage on mount & enforce 24-hour expiration
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
+    const savedLoginTime = localStorage.getItem("login_time");
+
+    // Check if 24 hours have elapsed since login or if the JWT token is expired
+    const isOver24Hours = savedLoginTime
+      ? Date.now() - Number(savedLoginTime) >= SESSION_DURATION_MS
+      : false;
+    const isTokenExpired = savedToken ? isJwtExpired(savedToken) : false;
+
+    if (savedToken && (isOver24Hours || isTokenExpired)) {
+      console.warn("[Auth] 24-hour login session expired. Requiring re-login.");
+      logout();
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes("/login") && !currentPath.includes("/signup")) {
+          window.location.href = `/login?expired=true&redirect=${encodeURIComponent(currentPath)}`;
+        }
+      }
+      setLoading(false);
+      return;
+    }
 
     if (savedToken && savedUser) {
       try {
@@ -53,11 +90,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  // Listen to custom session-expired events dispatched by API interceptors
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener("session-expired", handleSessionExpired);
+    return () => window.removeEventListener("session-expired", handleSessionExpired);
+  }, []);
+
+  // Active 24-hour timer: auto-log out user when 24 hours elapse even with browser tab left open
+  useEffect(() => {
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      const savedLoginTime = localStorage.getItem("login_time");
+      const isOver24Hours = savedLoginTime
+        ? Date.now() - Number(savedLoginTime) >= SESSION_DURATION_MS
+        : false;
+      const isTokenExpired = isJwtExpired(token);
+
+      if (isOver24Hours || isTokenExpired) {
+        console.warn("[Auth] 24-hour session threshold reached while app is open. Auto-logging out.");
+        logout();
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/login") && !currentPath.includes("/signup")) {
+            window.location.href = `/login?expired=true&redirect=${encodeURIComponent(currentPath)}`;
+          }
+        }
+      }
+    }, 15000); // Check every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [token]);
+
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
+    localStorage.setItem("login_time", String(Date.now()));
   };
 
   const logout = () => {
@@ -65,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("login_time");
   };
 
   const loginWithGoogleCredential = async (credential: string): Promise<boolean> => {
